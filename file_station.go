@@ -1,5 +1,15 @@
 package main
 
+const (
+	fileStationVersion = 1
+	listShareMethod    = "list_share"
+)
+
+type FileStation struct {
+	core    *SynologyCore
+	listApi *Api
+}
+
 type FileShare struct {
 	IsDir bool
 	Name  string
@@ -12,13 +22,8 @@ type FileShareListResponse struct {
 	Shares []FileShare
 }
 
-func (s *SynologyCore) ListShares() ([]FileShare, error) {
-	api, err := s.Find("SYNO.FileStation.List")
-	if err != nil {
-		return nil, err
-	}
-
-	response, err := s.makeRequest(api.Path, api.Name, "list_share", 1, nil)
+func (s *FileStation) ListShares() ([]FileShare, error) {
+	response, err := s.core.makeRequest(s.listApi.Path, s.listApi.Name, listShareMethod, fileStationVersion, nil)
 	if err != nil {
 		return nil, err
 	}

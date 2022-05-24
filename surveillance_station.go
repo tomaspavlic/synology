@@ -8,6 +8,8 @@ import (
 // https://global.download.synology.com/download/Document/Software/DeveloperGuide/Package/SurveillanceStation/All/enu/Surveillance_Station_Web_API.pdf
 
 const (
+	surveillanceStationVersion = 9
+
 	// SurveillanceStation api names
 	surveillanceStationCameraApiName = "SYNO.SurveillanceStation.Camera"
 
@@ -53,13 +55,14 @@ type SurveillanceStationInfoCameraListResponse struct {
 	Cameras []Camera
 }
 
-func (s *SynologyCore) SurveillanceStationCameraList() ([]Camera, error) {
-	info, err := s.Find(surveillanceStationCameraApiName)
-	if err != nil {
-		return nil, err
-	}
+type SurveillanceStation struct {
+	core      *SynologyCore
+	cameraApi *Api
+}
 
-	response, err := s.makeRequest(info.Path, info.Name, listMethod, 9, nil)
+// SurveillanceStationCameraList get the list of all cameras.
+func (s *SurveillanceStation) SurveillanceStationCameraList() ([]Camera, error) {
+	response, err := s.core.makeRequest(s.cameraApi.Path, s.cameraApi.Name, listMethod, surveillanceStationVersion, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -69,6 +72,7 @@ func (s *SynologyCore) SurveillanceStationCameraList() ([]Camera, error) {
 	return data.Cameras, err
 }
 
+// mapCameraIds maps camera slice into slice of camera ids.
 func mapCameraIds(cameras []Camera) string {
 	ids := make([]string, len(cameras))
 	for i, camera := range cameras {
@@ -78,13 +82,15 @@ func mapCameraIds(cameras []Camera) string {
 	return strings.Join(ids, ",")
 }
 
-func (s *SynologyCore) SurveillanceStationCameraDisable(cameras []Camera) error {
-	info, err := s.Find(surveillanceStationCameraApiName)
-	if err != nil {
-		return err
-	}
+// SurveillanceStationCameraDisable disables cameras.
+func (s *SurveillanceStation) SurveillanceStationCameraDisable(cameras []Camera) error {
+	response, err := s.core.makeRequest(
+		s.cameraApi.Path,
+		s.cameraApi.Name,
+		disableMethod,
+		surveillanceStationVersion,
+		map[string]string{"idList": mapCameraIds(cameras)})
 
-	response, err := s.makeRequest(info.Path, info.Name, disableMethod, 9, map[string]string{"idList": mapCameraIds(cameras)})
 	if err != nil {
 		return err
 	}
@@ -95,13 +101,15 @@ func (s *SynologyCore) SurveillanceStationCameraDisable(cameras []Camera) error 
 	return err
 }
 
-func (s *SynologyCore) SurveillanceStationCameraEnable(cameras []Camera) error {
-	info, err := s.Find(surveillanceStationCameraApiName)
-	if err != nil {
-		return err
-	}
+// SurveillanceStationCameraEnable enables cameras.
+func (s *SurveillanceStation) SurveillanceStationCameraEnable(cameras []Camera) error {
+	response, err := s.core.makeRequest(
+		s.cameraApi.Path,
+		s.cameraApi.Name,
+		enableMethod,
+		surveillanceStationVersion,
+		map[string]string{"idList": mapCameraIds(cameras)})
 
-	response, err := s.makeRequest(info.Path, info.Name, enableMethod, 9, map[string]string{"idList": mapCameraIds(cameras)})
 	if err != nil {
 		return err
 	}

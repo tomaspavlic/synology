@@ -42,6 +42,7 @@ func NewSynologyCore(host string, port int) *SynologyCore {
 	}
 }
 
+// makeRequest builds request url from provided API information and makes http request to Synology API using JSON payload.
 func (s *SynologyCore) makeRequest(path, name, method string, version int, params map[string]string) (*http.Response, error) {
 	url := buildRequestUrl(path, name, method, s.host, version, params)
 	request, _ := http.NewRequest(http.MethodGet, url, nil)
@@ -59,6 +60,7 @@ func (s *SynologyCore) makeRequest(path, name, method string, version int, param
 	return resp, nil
 }
 
+// RetrieveApiInformation provides available API info.
 func (s *SynologyCore) RetrieveApiInformation() (ApiInfo, error) {
 	response, err := s.makeRequest(queryPath, apiInfoApiName, queryMethod, 1, nil)
 	if err != nil {
@@ -70,6 +72,7 @@ func (s *SynologyCore) RetrieveApiInformation() (ApiInfo, error) {
 	return data, err
 }
 
+// Find finds provided API name from available API info.
 func (s *SynologyCore) Find(apiName string) (*Api, error) {
 	// make sure all information is first loaded from API
 	if s.info == nil {
@@ -90,4 +93,27 @@ func (s *SynologyCore) Find(apiName string) (*Api, error) {
 	}
 
 	return nil, fmt.Errorf("provided api name '%s' was not found", apiName)
+}
+
+func (s *SynologyCore) FileStation() (*FileStation, error) {
+	listApi, err := s.Find("SYNO.FileStation.List")
+
+	fs := &FileStation{
+		core:    s,
+		listApi: listApi,
+	}
+
+	return fs, err
+}
+
+// SurveillanceStation tries to get API for SurveillanceStation.
+func (s *SynologyCore) SurveillanceStation() (*SurveillanceStation, error) {
+	cameraApi, err := s.Find(surveillanceStationCameraApiName)
+
+	ss := &SurveillanceStation{
+		core:      s,
+		cameraApi: cameraApi,
+	}
+
+	return ss, err
 }

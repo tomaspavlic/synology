@@ -1,4 +1,4 @@
-package main
+package synology
 
 import (
 	"net/url"

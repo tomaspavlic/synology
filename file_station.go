@@ -1,6 +1,7 @@
-package main
+package synology
 
 const (
+	fileStationApiName = "SYNO.FileStation.List"
 	fileStationVersion = 1
 	listShareMethod    = "list_share"
 )

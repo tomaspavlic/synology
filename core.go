@@ -1,4 +1,4 @@
-package main
+package synology
 
 import (
 	"crypto/tls"
@@ -96,7 +96,7 @@ func (s *SynologyCore) Find(apiName string) (*Api, error) {
 }
 
 func (s *SynologyCore) FileStation() (*FileStation, error) {
-	listApi, err := s.Find("SYNO.FileStation.List")
+	listApi, err := s.Find(fileStationApiName)
 
 	fs := &FileStation{
 		core:    s,

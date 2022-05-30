@@ -45,13 +45,19 @@ func NewSynologyCore(host string, port int) *SynologyCore {
 
 // makeRequest builds request url from provided API information and makes http request to Synology API using JSON payload.
 func (s *SynologyCore) makeRequest(path, name, method string, version int, params map[string]string) ([]byte, error) {
-	url := buildRequestUrl(path, name, method, s.host, version, params)
-	request, _ := http.NewRequest(http.MethodGet, url, nil)
+
+	if params == nil {
+		params = make(map[string]string)
+	}
 
 	// include authentication cookie if exists
 	if s.sid != "" {
 		params["_sid"] = s.sid
 	}
+
+	url := buildRequestUrl(path, name, method, s.host, version, params)
+	request, _ := http.NewRequest(http.MethodGet, url, nil)
+
 	resp, err := s.httpClient.Do(request)
 
 	if err != nil {

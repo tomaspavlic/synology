@@ -66,9 +66,8 @@ func (s *SurveillanceStation) SurveillanceStationCameraList() ([]Camera, error) 
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
 
-	data, err := readResponse[SurveillanceStationInfoCameraListResponse](response)
+	data, err := unmarshal[SurveillanceStationInfoCameraListResponse](response)
 	return data.Cameras, err
 }
 
@@ -94,9 +93,8 @@ func (s *SurveillanceStation) SurveillanceStationCameraDisable(cameras []Camera)
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
-	_, err = readResponse[struct{}](response)
+	_, err = unmarshal[struct{}](response)
 
 	return err
 }
@@ -113,9 +111,8 @@ func (s *SurveillanceStation) SurveillanceStationCameraEnable(cameras []Camera) 
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
 
-	_, err = readResponse[struct{}](response)
+	_, err = unmarshal[struct{}](response)
 
 	return err
 }

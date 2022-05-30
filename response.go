@@ -3,7 +3,6 @@ package synology
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 )
 
 type errorDetail struct {
@@ -26,11 +25,11 @@ type response[T any] struct {
 	Data    T
 }
 
-func readResponse[T any](resp *http.Response) (T, error) {
+func unmarshal[T any](resp []byte) (T, error) {
 	var response response[T]
 	var data T
 
-	err := json.NewDecoder(resp.Body).Decode(&response)
+	err := json.Unmarshal(resp, &response)
 	if err != nil {
 		return data, err
 	}

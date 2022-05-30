@@ -8,10 +8,6 @@ import (
 // https://global.download.synology.com/download/Document/Software/DeveloperGuide/Os/DSM/All/enu/DSM_Login_Web_API_Guide_enu.pdf
 // https://global.download.synology.com/download/Document/Software/DeveloperGuide/Package/FileStation/All/enu/Synology_File_Station_API_Guide.pdf
 
-const (
-	apiHost = "10.180.0.3:5001"
-)
-
 type Api struct {
 	Name string
 	Path string

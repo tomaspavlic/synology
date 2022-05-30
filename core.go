@@ -3,6 +3,7 @@ package synology
 import (
 	"crypto/tls"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 )
 
@@ -24,7 +25,7 @@ type SynologyCore struct {
 	info       ApiInfo
 	host       string
 	httpClient *http.Client
-	authCookie *http.Cookie
+	sid        string
 }
 
 func NewSynologyCore(host string, port int) *SynologyCore {
@@ -43,13 +44,13 @@ func NewSynologyCore(host string, port int) *SynologyCore {
 }
 
 // makeRequest builds request url from provided API information and makes http request to Synology API using JSON payload.
-func (s *SynologyCore) makeRequest(path, name, method string, version int, params map[string]string) (*http.Response, error) {
+func (s *SynologyCore) makeRequest(path, name, method string, version int, params map[string]string) ([]byte, error) {
 	url := buildRequestUrl(path, name, method, s.host, version, params)
 	request, _ := http.NewRequest(http.MethodGet, url, nil)
 
 	// include authentication cookie if exists
-	if s.authCookie != nil {
-		request.AddCookie(s.authCookie)
+	if s.sid != "" {
+		params["_sid"] = s.sid
 	}
 	resp, err := s.httpClient.Do(request)
 
@@ -57,7 +58,8 @@ func (s *SynologyCore) makeRequest(path, name, method string, version int, param
 		return nil, err
 	}
 
-	return resp, nil
+	defer resp.Body.Close()
+	return ioutil.ReadAll(resp.Body)
 }
 
 // RetrieveApiInformation provides available API info.
@@ -66,10 +68,8 @@ func (s *SynologyCore) RetrieveApiInformation() (ApiInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
-	data, err := readResponse[ApiInfo](response)
 
-	return data, err
+	return unmarshal[ApiInfo](response)
 }
 
 // Find finds provided API name from available API info.

@@ -28,8 +28,7 @@ func (s *FileStation) ListShares() ([]FileShare, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer response.Body.Close()
-	data, err := readResponse[FileShareListResponse](response)
+	data, err := unmarshal[FileShareListResponse](response)
 
 	return data.Shares, err
 }

@@ -1,14 +1,13 @@
 package synology
 
 const (
-	fileStationApiName = "SYNO.FileStation.List"
-	fileStationVersion = 1
-	listShareMethod    = "list_share"
+	fileStationListApiName        = "SYNO.FileStation.List"
+	fileStationApiVersion         = 1
+	fileStationApiListShareMethod = "list_share"
 )
 
 type FileStation struct {
-	core    *SynologyCore
-	listApi *Api
+	core *SynologyCore
 }
 
 type FileShare struct {
@@ -24,7 +23,14 @@ type FileShareListResponse struct {
 }
 
 func (s *FileStation) ListShares() ([]FileShare, error) {
-	response, err := s.core.makeRequest(s.listApi.Path, s.listApi.Name, listShareMethod, fileStationVersion, nil)
+	response, err := s.core.makeRequest(
+		entryPath,
+		fileStationListApiName,
+		fileStationApiListShareMethod,
+		fileStationApiVersion,
+		nil,
+	)
+
 	if err != nil {
 		return nil, err
 	}

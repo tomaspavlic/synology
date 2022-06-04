@@ -1,9 +1,6 @@
 package synology
 
-import (
-	"strconv"
-	"strings"
-)
+import "strconv"
 
 // https://global.download.synology.com/download/Document/Software/DeveloperGuide/Package/SurveillanceStation/All/enu/Surveillance_Station_Web_API.pdf
 
@@ -14,9 +11,9 @@ const (
 	surveillanceStationCameraApiName = "SYNO.SurveillanceStation.Camera"
 
 	// SurveillanceStationCamera method names
-	listMethod    = "List"
-	disableMethod = "Disable"
-	enableMethod  = "Enable"
+	surveillanceStationCameraListMethod    = "List"
+	surveillanceStationCameraDisableMethod = "Disable"
+	surveillanceStationCameraEnableMethod  = "Enable"
 )
 
 type CameraStatus uint8
@@ -43,6 +40,8 @@ const (
 )
 
 type Camera struct {
+	core *SynologyCore
+
 	NewName string
 	Id      int
 	Ip      string
@@ -50,45 +49,46 @@ type Camera struct {
 	Status  CameraStatus
 }
 
-type SurveillanceStationInfoCameraListResponse struct {
+type surveillanceStationInfoCameraListResponse struct {
 	Total   int
-	Cameras []Camera
+	Cameras []*Camera
 }
 
 type SurveillanceStation struct {
-	core      *SynologyCore
-	cameraApi *Api
+	*SynologyCore
 }
 
-// SurveillanceStationCameraList get the list of all cameras.
-func (s *SurveillanceStation) SurveillanceStationCameraList() ([]Camera, error) {
-	response, err := s.core.makeRequest(s.cameraApi.Path, s.cameraApi.Name, listMethod, surveillanceStationVersion, nil)
+// List get the list of all cameras.
+func (s *SurveillanceStation) List() ([]*Camera, error) {
+	response, err := s.SynologyCore.makeRequest(
+		entryPath,
+		surveillanceStationCameraApiName,
+		surveillanceStationCameraListMethod,
+		surveillanceStationVersion,
+		nil,
+	)
+
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := unmarshal[SurveillanceStationInfoCameraListResponse](response)
+	data, err := unmarshal[surveillanceStationInfoCameraListResponse](response)
+
+	for _, camera := range data.Cameras {
+		camera.core = s.SynologyCore
+	}
+
 	return data.Cameras, err
 }
 
-// mapCameraIds maps camera slice into slice of camera ids.
-func mapCameraIds(cameras []Camera) string {
-	ids := make([]string, len(cameras))
-	for i, camera := range cameras {
-		ids[i] = strconv.Itoa(camera.Id)
-	}
-
-	return strings.Join(ids, ",")
-}
-
-// SurveillanceStationCameraDisable disables cameras.
-func (s *SurveillanceStation) SurveillanceStationCameraDisable(cameras []Camera) error {
+func (s *Camera) changeCamerasState(method string) error {
 	response, err := s.core.makeRequest(
-		s.cameraApi.Path,
-		s.cameraApi.Name,
-		disableMethod,
+		entryPath,
+		surveillanceStationCameraApiName,
+		method,
 		surveillanceStationVersion,
-		map[string]string{"idList": mapCameraIds(cameras)})
+		parameters{"idList": strconv.Itoa(s.Id)},
+	)
 
 	if err != nil {
 		return err
@@ -99,20 +99,12 @@ func (s *SurveillanceStation) SurveillanceStationCameraDisable(cameras []Camera)
 	return err
 }
 
-// SurveillanceStationCameraEnable enables cameras.
-func (s *SurveillanceStation) SurveillanceStationCameraEnable(cameras []Camera) error {
-	response, err := s.core.makeRequest(
-		s.cameraApi.Path,
-		s.cameraApi.Name,
-		enableMethod,
-		surveillanceStationVersion,
-		map[string]string{"idList": mapCameraIds(cameras)})
+// Disable disables cameras.
+func (s *Camera) Disable() error {
+	return s.changeCamerasState(surveillanceStationCameraDisableMethod)
+}
 
-	if err != nil {
-		return err
-	}
-
-	_, err = unmarshal[struct{}](response)
-
-	return err
+// Enable enables cameras.
+func (s *Camera) Enable() error {
+	return s.changeCamerasState(surveillanceStationCameraEnableMethod)
 }

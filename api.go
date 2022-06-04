@@ -5,14 +5,6 @@ import (
 	"strconv"
 )
 
-// https://global.download.synology.com/download/Document/Software/DeveloperGuide/Os/DSM/All/enu/DSM_Login_Web_API_Guide_enu.pdf
-// https://global.download.synology.com/download/Document/Software/DeveloperGuide/Package/FileStation/All/enu/Synology_File_Station_API_Guide.pdf
-
-type Api struct {
-	Name string
-	Path string
-}
-
 func buildRequestUrl(path, name, method, host string, version int, params map[string]string) string {
 	query := url.Values{}
 	query.Set("api", name)

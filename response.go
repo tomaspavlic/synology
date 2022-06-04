@@ -10,17 +10,17 @@ type errorDetail struct {
 	Path string
 }
 
-type ResponseError struct {
+type responseError struct {
 	Code   int
 	Errors []errorDetail
 }
 
-func (e ResponseError) Error() string {
+func (e responseError) Error() string {
 	return fmt.Sprintf("status code: %d", e.Code)
 }
 
 type response[T any] struct {
-	Error   ResponseError
+	Error   responseError
 	Success bool
 	Data    T
 }
